@@ -1,66 +1,47 @@
-import socket
+import asyncio
+from IRCClient import IRCSimpleClient
 import threading
-import sys
+from data_analyze import IRCDataAnalyzer
+from logger import log
 
 
-def channel(channel):
-    if channel.startswith("#") == False:
-        return "#" + channel
-    return channel
-
-# helper function used as thread target
-def print_response():
+def print_response(client):
     resp = client.get_response()
     if resp:
         if len(str(resp)) != 0:
             msg = resp.strip().split(":")
-            print("response", "< {}> {}".format(msg[1].split("!")[0], msg[2].strip()))
+            log("response" + " " + "<{}> {}".format(msg[1].split("!")[0], msg[2].strip()))
 
 
-class IRCSimpleClient:
+def get_names(raw_data: str):
+    strict_data = []
+    for line in raw_data.split("\r\n"):
+        if line == "":
+            continue
+        if line.split(" ")[1] == "353":
+            strict_data += [i for i in line.split(":")[2].split(" ")]
 
-    def __init__(self, username, channel, server="irc.freenode.net", port=6667):
-        self.username = username
-        self.server = server
-        self.port = port
-        self.channel = channel
-
-    def connect(self):
-        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.conn.connect((self.server, self.port))
-        self.send_cmd("USER", f"{username} {username} {username} {username}")
-        self.send_cmd("NICK", f"{username}")
-
-    def get_response(self):
-        return self.conn.recv(2048).decode("utf-8")
-
-    def send_cmd(self, cmd, message):
-        command = "{} {}\r\n".format(cmd, message).encode("utf-8")
-        self.conn.send(command)
-        print("send command", command)
-
-    def send_message_to_channel(self, message):
-        command = "PRIVMSG {}".format(self.channel)
-        message = ":" + message
-        self.send_cmd(command, message)
-
-    def join_channel(self):
-        cmd = "JOIN"
-        channel = self.channel
-        self.send_cmd(cmd, channel)
+    return sorted(strict_data)
 
 
-if __name__ == "__main__":
-    username = "ff"
-    channel = channel("#freenode")
+async def start_irc_client(username: str, channel: str):
     cmd = ""
     joined = False
     client = IRCSimpleClient(username, channel)
     client.connect()
-    while (joined == False):
+    names = IRCDataAnalyzer(get_names)
+    while not joined:
         resp = str(client.get_response())
+
         if len(resp) != 0:
-            print("recieved", resp.strip())
+            log("recieved", resp.strip())
+
+        if "PING" in resp:
+            for line in resp.split("\n"):
+                if line.startswith("PING"):
+                    client.send_cmd("PONG", ":" + line.split(":")[1]
+                                    .strip("\r\n"))
+                    break
 
         if "No Ident response" in resp:
             client.send_cmd("NICK", username)
@@ -78,22 +59,31 @@ if __name__ == "__main__":
             client.send_cmd(
                 "USER", "{} * * :{}".format(username, username))
 
-        # if PING send PONG with name of the server
-        if "PING" in resp:
-            client.send_cmd("PONG", ":" + resp.split(":")[1])
+        if "333" in resp:
+            await names.add_raw_data(resp)
+            continue
+
+        if "353" in resp:
+            await names.add_raw_data(resp)
 
         # we've joined
         if "366" in resp:
             joined = True
 
-    while(cmd != "/quit"):
-        cmd = input("< {}> ".format(username)).strip()
+    print(await names.get_data())
+    while (cmd != "/quit"):
+        cmd = input(f"<{username}> :").strip()
         if cmd == "/quit":
-            client.send_cmd("QUIT", "Good bye!")
+            client.send_cmd("QUIT", "App closed")
         client.send_message_to_channel(cmd)
 
-        # socket conn.receive blocks the program until a response is received
-        # to prevent blocking program execution, receive should be threaded
-        response_thread = threading.Thread(target=print_response)
+        response_thread = threading.Thread(target=print_response, args=[client])
         response_thread.daemon = True
         response_thread.start()
+
+
+if __name__ == "__main__":
+    asyncio.run(start_irc_client("ff", "#freenode"))
+
+
+
