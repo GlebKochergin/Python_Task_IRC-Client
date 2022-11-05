@@ -1,6 +1,7 @@
 import threading
 from logger import log
 
+
 class IRCDataAnalyzer:
     def __init__(self, get_formatted):
         self._mutex = threading.Lock()
