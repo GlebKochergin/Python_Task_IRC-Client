@@ -1,63 +1,85 @@
 from PyQt6.QtWidgets import \
-    QApplication, QPushButton, QVBoxLayout, QLineEdit, QWidget
+    QApplication, QPushButton, QVBoxLayout, QLineEdit, QLabel, \
+    QStackedWidget, QDialog
 import sys
 
+from chat_window_class import ServerWindow
 
-app = QApplication(sys.argv)
+
+def go_to_next_window():
+    widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
-class MainWindow(QWidget):
-    def __init__(self, name: str):
+def go_to_previous_window():
+    widget.setCurrentIndex(widget.currentIndex() - 1)
+
+
+class MainWindow(QDialog):
+    def __init__(self):
         super(MainWindow, self).__init__()
-        self.setWindowTitle(name)
+        self.setWindowTitle('IRC-Client')
         self.resize(600, 400)
         self.setMaximumSize(1200, 800)
-        self.setStyleSheet(stylesheet_start)
+        self.setStyleSheet('background-image: url(main_back.jpg);')
+        self.text = QLabel('Welcome to the club body!')
+        self.text.setStyleSheet('font-size : 40px;')
+        self.text.setMinimumSize(500, 50)
+        self.text.setMaximumSize(600, 50)
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        irc_server_input = QLineEdit()
-        irc_server_input.setMinimumSize(300, 50)
-        irc_server_input.setMaximumSize(600, 50)
-        irc_server_input.setPlaceholderText('Вставьте ссылку на IRC-сервер')
-        irc_server_input.setEchoMode(QLineEdit.EchoMode.Normal)
+        self.irc_server_input = QLineEdit()
+        self.irc_server_input.setStyleSheet('background-color: #D2FFF2; '
+                                            'font-size : 30px;')
+        self.irc_server_input.setMinimumSize(500, 50)
+        self.irc_server_input.setMaximumSize(600, 50)
+        self.irc_server_input.setPlaceholderText('Вставьте ссылку на '
+                                                 'IRC-сервер')
+        self.irc_server_input.setEchoMode(QLineEdit.EchoMode.Normal)
 
-        nickname = QLineEdit()
-        nickname.setMinimumSize(300, 50)
-        nickname.setMaximumSize(600, 50)
-        nickname.setPlaceholderText('Введите свой никнейм')
-        nickname.setEchoMode(QLineEdit.EchoMode.Normal)
+        self.nickname = QLineEdit()
+        self.nickname.setStyleSheet('background-color: #D2FFF2; '
+                                    'font-size : 30px;')
+        self.nickname.setMinimumSize(500, 50)
+        self.nickname.setMaximumSize(600, 50)
+        self.nickname.setPlaceholderText('Введите свой никнейм')
+        self.nickname.setEchoMode(QLineEdit.EchoMode.Normal)
 
-        enter_button = QPushButton('&Enter')
-        enter_button.setMinimumSize(300, 50)
-        enter_button.setMaximumSize(600, 50)
+        self.enter_button = QPushButton('Enter')
+        self.enter_button.setStyleSheet('background-color: #2DBC91;'
+                                        'font-size: 20px;')
+        self.enter_button.setMinimumSize(500, 50)
+        self.enter_button.setMaximumSize(600, 50)
+        self.enter_button.clicked.connect(self.enter_chat)
 
-        layout.addWidget(irc_server_input)
-        layout.addWidget(nickname)
-        layout.addWidget(enter_button)
+        layout.addWidget(self.text)
+        layout.addWidget(self.irc_server_input)
+        layout.addWidget(self.nickname)
+        layout.addWidget(self.enter_button)
 
+        self.show()
 
-stylesheet_start = """
-        QWidget {
-            background-color: white;
-            font-size : 30px;
-        }
-        QPushButton {
-            background-color: yellow;
-            font-size: 20px;
-        }
-        MainWindow {
-            background-color: pink;
-        }    
-    """
-
-
-def start_app():
-    window = MainWindow('IRC-Client')
-    window.show()
-    sys.exit(app.exec())
+    def enter_chat(self):
+        if len(self.irc_server_input.text()) == 0 \
+                or len(self.nickname.text()) == 0:
+            self.setStyleSheet('background-color: #FF7070')
+        else:
+            self.setStyleSheet('background-image: url(main_back.jpg);')
+            go_to_next_window()
 
 
-if __name__ == "__main__":
-    start_app()
+app = QApplication(sys.argv)
+widget = QStackedWidget()
+widget.setMinimumSize(600, 400)
+widget.setMaximumSize(1200, 800)
+
+main_window = MainWindow()
+server_window = ServerWindow()
+
+widget.addWidget(main_window)
+widget.addWidget(server_window)
+widget.setWindowTitle(widget.currentWidget().windowTitle())
+widget.show()
+
+sys.exit(app.exec())
