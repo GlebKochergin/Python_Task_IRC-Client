@@ -6,30 +6,52 @@ from logger import log
 
 
 def print_response(client):
+    pass
     resp = client.get_response()
     if resp:
         if len(str(resp)) != 0:
             msg = resp.strip().split(":")
-            log("response" + " " + "<{}> {}".format(msg[1].split("!")[0], msg[2].strip()))
+            log("response" + " " + "<{}> {}".format(msg[1].split("!")[0],
+                                                    msg[2].strip()))
 
 
 def get_names(raw_data: str):
-    strict_data = []
+    users = []
+    admins = []
     for line in raw_data.split("\r\n"):
         if line == "":
             continue
         if line.split(" ")[1] == "353":
-            strict_data += [i for i in line.split(":")[2].split(" ")]
+            names = [_ for _ in line.split(":")[2].split(" ")]
+            for i in range(len(names)):
+                if names[i].startswith("@"):
+                    admins.append(names[i])
+            names = filter(lambda x: not x.startswith("@"), names)
+            users += names
+    print(admins)
+    ans = sorted(admins, key=lambda x: x.lower())\
+          + sorted(users, key=lambda x: x.lower())
+    return ans
 
-    return sorted(strict_data)
+
+def get_channels(raw_data: str):
+    channels = []
+    for line in raw_data.split("\r\n"):
+        if line == "":
+            continue
+        if line.split(" ")[1] == "322":
+            channels.append(line.split(" ")[3])
+
+    return channels
 
 
 async def start_irc_client(username: str, channel: str):
     cmd = ""
     joined = False
-    client = IRCSimpleClient(username, channel)
+    client = IRCSimpleClient(username, channel, "irc.ircnet.ru")
     client.connect()
     names = IRCDataAnalyzer(get_names)
+    channels = IRCDataAnalyzer(get_channels)
     while not joined:
         resp = str(client.get_response())
 
@@ -48,9 +70,23 @@ async def start_irc_client(username: str, channel: str):
             client.send_cmd(
                 "USER", "{} * * :{}".format(username, username))
 
+        if "321" in resp:
+            await channels.add_raw_data(resp)
+            continue
+
+        if "323" in resp:
+            await channels.add_raw_data(resp)
+            client.join_channel()
+            print(await channels.get_data())
+            continue
+
+        if "322" in resp:
+            await channels.add_raw_data(resp)
+            continue
+
         # we're accepted, now let's join the channel!
         if "376" in resp:
-            client.join_channel()
+            client.send_cmd("LIST", "")
 
         # username already in use? try to use username with _
         if "433" in resp:
@@ -77,13 +113,11 @@ async def start_irc_client(username: str, channel: str):
             client.send_cmd("QUIT", "App closed")
         client.send_message_to_channel(cmd)
 
-        response_thread = threading.Thread(target=print_response, args=[client])
+        response_thread = threading.Thread(target=print_response,
+                                           args=[client])
         response_thread.daemon = True
         response_thread.start()
 
 
 if __name__ == "__main__":
     asyncio.run(start_irc_client("ff", "#freenode"))
-
-
-

@@ -17,6 +17,7 @@ class IRCDataAnalyzer:
     async def data_analyze(self):
         self._mutex.acquire()
         self._formatted_data = self._data_format_func(self._not_formatted_data)
+        self._mutex.release()
 
     async def get_data(self) -> [str]:
         log("!!!!!!!!!!!!!!!!!!!!!!!")
