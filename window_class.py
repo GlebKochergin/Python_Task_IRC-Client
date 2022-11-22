@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import \
     QApplication, QPushButton, QVBoxLayout, QLineEdit, QLabel, \
-    QStackedWidget, QDialog
+    QStackedWidget, QDialog, QScrollArea
 import sys
 
-from chat_window_class import ServerWindow
+from channels_window_class import ServerWindow
+from chat_window_class import ChatWindow
 
 
 def go_to_next_window():
@@ -28,6 +29,8 @@ class MainWindow(QDialog):
 
         layout = QVBoxLayout()
         self.setLayout(layout)
+
+        # layout.addWidget(scroll)
 
         self.irc_server_input = QLineEdit()
         self.irc_server_input.setStyleSheet('background-color: #D2FFF2; '
@@ -71,14 +74,16 @@ class MainWindow(QDialog):
 
 app = QApplication(sys.argv)
 widget = QStackedWidget()
-widget.setMinimumSize(600, 400)
+widget.setMinimumSize(1200, 800)
 widget.setMaximumSize(1200, 800)
 
 main_window = MainWindow()
-server_window = ServerWindow()
+server_window = ServerWindow(go_to_next_window)
+chat_window = ChatWindow()
 
 widget.addWidget(main_window)
 widget.addWidget(server_window)
+widget.addWidget(chat_window)
 widget.setWindowTitle(widget.currentWidget().windowTitle())
 widget.show()
 

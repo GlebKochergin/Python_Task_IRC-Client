@@ -1,6 +1,7 @@
 import socket
 import codecs
 
+
 class IRCSimpleClient:
     def __init__(self, username, channel, server="irc.freenode.net",
                  port=6667):
