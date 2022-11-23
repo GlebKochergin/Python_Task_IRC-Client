@@ -1,7 +1,7 @@
 import threading
 from logger import log
 
-
+#убрать все в одно место
 class IRCDataAnalyzer:
     def __init__(self, get_formatted):
         self._mutex = threading.Lock()
@@ -14,15 +14,13 @@ class IRCDataAnalyzer:
         self._not_formatted_data += ans
         self._mutex.release()
 
-    async def data_analyze(self):
-        self._mutex.acquire()
+    def data_analyze(self):
         self._formatted_data = self._data_format_func(self._not_formatted_data)
-        self._mutex.release()
 
     async def get_data(self) -> [str]:
         log("!!!!!!!!!!!!!!!!!!!!!!!")
         log(self._not_formatted_data)
         if len(self._formatted_data) == 0:
-            await self.data_analyze()
+            self.data_analyze()
 
         return self._formatted_data
