@@ -19,7 +19,7 @@ def go_to_server_window():
 def go_to_chat_server():
     server = widget.currentWidget().channel_input.text()
     widget.currentWidget().IRCHandler.join_channel(server)
-    chat_window = ChatWindow()
+    chat_window = ChatWindow(widget.currentWidget().IRCHandler)
     widget.addWidget(chat_window)
     widget.setCurrentIndex(widget.currentIndex() + 1)
 

@@ -10,7 +10,8 @@ class IRCHandler:
         self.client = IRCSimpleClient(username, server, port)
         self.names = list[str]
         self.recorder = ChatRecorder("log.txt")
-        self.chat_num = 0
+        self.message = ''
+
 
     def connect_to_server(self):
         self.client.connect()
@@ -115,9 +116,10 @@ class IRCHandler:
     def get_names(self):
         return self.names
 
-    def send_message(self, msg):
-        self.client.send_message_to_channel(msg)
-        self.recorder.add_record(f"{self.client.username}: {msg}")
+    def send_message(self):
+        if self.message != '':
+            self.client.send_message_to_channel(self.message)
+            self.recorder.add_record(f"{self.client.username}: {self.message}")
 
     def receive_messages(self):
         while True:

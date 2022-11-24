@@ -18,13 +18,10 @@ class ServerWindow(QScrollArea):
 
         for i in range(len(self.channels)):
             server_button = QLabel(f'{self.channels[i]}')
-            # server_button = QPushButton(f'{self.channels[i]}')
             server_button.setStyleSheet('background-color: #2DBC91;'
                                         'font-size: 10px;')
             server_button.setMinimumSize(500, 25)
             server_button.setMaximumSize(600, 25)
-            # server_button.clicked.connect(
-            #     lambda x: self.IRCHandler.join_channel(self.channels[i]))
             layout.addWidget(server_button)
         self.channel_input = QLineEdit()
         self.enter_channel = QPushButton('Enter!')

@@ -1,6 +1,7 @@
 import threading
 from logger import log
 
+
 #убрать все в одно место
 class IRCDataAnalyzer:
     def __init__(self, get_formatted):
