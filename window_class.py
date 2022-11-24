@@ -3,22 +3,25 @@ from PyQt6.QtWidgets import \
     QStackedWidget, QDialog, QScrollArea
 import sys
 
+from IRCHandler import IRCHandler
 from channels_window_class import ServerWindow
 from chat_window_class import ChatWindow
 
 
 def go_to_server_window():
-    widget.setCurrentIndex(widget.currentIndex() + 1)
     server_window = ServerWindow(go_to_chat_server,
                                  main_window.nickname.text(),
                                  main_window.irc_server_input.text())
     widget.addWidget(server_window)
+    widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
 def go_to_chat_server():
-    widget.setCurrentIndex(widget.currentIndex() + 1)
+    server = widget.currentWidget().channel_input.text()
+    widget.currentWidget().IRCHandler.join_channel(server)
     chat_window = ChatWindow()
     widget.addWidget(chat_window)
+    widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
 def go_to_previous_window():

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QScrollArea
+from PyQt6.QtWidgets import QPushButton, QVBoxLayout, QScrollArea, QLabel, QLineEdit
 from IRCHandler import IRCHandler
 
 
@@ -12,20 +12,24 @@ class ServerWindow(QScrollArea):
         self.IRCHandler = IRCHandler(nickname, server)
         self.IRCHandler.connect_to_server()
         self.channels = self.IRCHandler.get_channels_list()
-        # self.channels = ['#server1', '#server2', '#server3',
-        #                  '#server4', '#server5']
 
         layout = QVBoxLayout()
         self.setLayout(layout)
 
         for i in range(len(self.channels)):
-            server_button = QPushButton(f'{self.channels[i]}')
+            server_button = QLabel(f'{self.channels[i]}')
+            # server_button = QPushButton(f'{self.channels[i]}')
             server_button.setStyleSheet('background-color: #2DBC91;'
                                         'font-size: 10px;')
             server_button.setMinimumSize(500, 25)
             server_button.setMaximumSize(600, 25)
+            # server_button.clicked.connect(
+            #     lambda x: self.IRCHandler.join_channel(self.channels[i]))
             layout.addWidget(server_button)
-            server_button.clicked.connect(
-                lambda x: self.IRCHandler.join_channel(server_button.text()))
-
+        self.channel_input = QLineEdit()
+        self.enter_channel = QPushButton('Enter!')
+        self.enter_channel.clicked.connect(func)
+        layout.addWidget(self.channel_input)
+        layout.addWidget(self.enter_channel)
         self.show()
+
