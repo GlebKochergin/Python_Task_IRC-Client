@@ -1,5 +1,5 @@
 import asyncio
-
+from chat_recorder import ChatRecorder
 from IRCClient import IRCSimpleClient
 from data_analyze import IRCDataAnalyzer
 from logger import log
@@ -9,6 +9,8 @@ class IRCHandler:
     def __init__(self, username, server="irc.freenode.net", port=6667):
         self.client = IRCSimpleClient(username, server, port)
         self.names = list[str]
+        self.recorder = ChatRecorder("log.txt")
+        self.chat_num = 0
 
     def connect_to_server(self):
         self.client.connect()
@@ -69,7 +71,7 @@ class IRCHandler:
                 channels.add_raw_data(resp)
                 continue
 
-    def join_channel(self, channel: str):
+    def join_channel(self, channel):
         def get_names(raw_data: str):
             users = []
             admins = []
@@ -107,19 +109,18 @@ class IRCHandler:
                 self.names = names.get_data()
                 return True
 
+            if "475" in resp:
+                return False
+
     def get_names(self):
         return self.names
 
-    def send_message(self):
-        print("INININININN")
-        while True:
-            msg = input("In")
-            self.client.send_message_to_channel(msg)
-
+    def send_message(self, msg):
+        self.client.send_message_to_channel(msg)
+        self.recorder.add_record(f"{self.client.username}: {msg}")
 
     def receive_messages(self):
         while True:
-
             resp = str(self.client.get_response())
             if len(resp) != 0:
                 log("recieved", resp.strip())
@@ -134,7 +135,12 @@ class IRCHandler:
             if len(resp.split("!")) == 2:
                 action = resp.split(" ")[1]
                 if action == "JOIN":
-                    log(f"{resp.split('!')[0]} joined")
+                    self.recorder.add_record(f"{resp.split('!')[0][1:]} joined")
+                    return f"{resp.split('!')[0][1:]} joined"
+                if action == "QUIT":
+                    self.recorder.add_record(f"{resp.split('!')[0][1:]} quited")
+                    return f"{resp.split('!')[0][1:]} quited"
                 if action == "PRIVMSG":
-                    print(f"{resp.split('!')[0]} " + resp.split(":")[2])
+                    self.recorder.add_record(f"{resp.split('!')[0][1:]} " + resp.split(":")[2])
+                    return f"{resp.split('!')[0][1:]} " + resp.split(":")[2]
 

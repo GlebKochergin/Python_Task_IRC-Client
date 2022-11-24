@@ -23,7 +23,7 @@ async def start_irc_client(server: str, username: str):
     handler.join_channel("freenode")
     print(handler.get_names())
     tasks = [threading.Thread(target=handler.receive_messages),
-             threading.Thread(target=handler.send_message())]
+             threading.Thread(target=handler.send_message)]
 
     for t in tasks:
         t.start()

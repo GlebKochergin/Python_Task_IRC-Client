@@ -134,3 +134,4 @@ dmypy.json
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/Python_Task_IRC-Client.iml
 /.idea/vcs.xml
+/log.txt
