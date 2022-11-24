@@ -44,7 +44,7 @@ class IRCHandler:
             if "376" in resp:
                 return True
 
-    async def get_channels_list(self) -> list[str]:
+    def get_channels_list(self) -> list[str]:
         def get_channels(raw_data: str):
             channels = []
             for line in raw_data.split("\r\n"):
@@ -61,15 +61,15 @@ class IRCHandler:
         while True:
             resp = str(self.client.get_response())
             if "323" in resp:
-                await channels.add_raw_data(resp)
-                return await channels.get_data()
+                channels.add_raw_data(resp)
+                return channels.get_data()
                 # channel = input(*[str(i) for i in client.channels])
 
             if "321" in resp or "322" in resp:
-                await channels.add_raw_data(resp)
+                channels.add_raw_data(resp)
                 continue
 
-    async def join_channel(self, channel: str):
+    def join_channel(self, channel: str):
         def get_names(raw_data: str):
             users = []
             admins = []
@@ -97,27 +97,27 @@ class IRCHandler:
                 log("recieved", resp.strip())
 
             if "333" in resp:
-                await names.add_raw_data(resp)
+                names.add_raw_data(resp)
                 continue
 
             if "353" in resp:
-                await names.add_raw_data(resp)
+                names.add_raw_data(resp)
 
             if "366" in resp:
-                self.names = await names.get_data()
+                self.names = names.get_data()
                 return True
 
     def get_names(self):
         return self.names
 
-    async def send_message(self):
+    def send_message(self):
         print("INININININN")
         while True:
             msg = input("In")
             self.client.send_message_to_channel(msg)
 
 
-    async def receive_messages(self):
+    def receive_messages(self):
         while True:
 
             resp = str(self.client.get_response())

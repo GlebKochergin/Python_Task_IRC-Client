@@ -19,13 +19,17 @@ def print_response(client):
 async def start_irc_client(server: str, username: str):
     handler = IRCHandler(username=username, server=server)
     handler.connect_to_server()
-    print(await handler.get_channels_list())
-    await handler.join_channel("freenode")
+    print(handler.get_channels_list())
+    handler.join_channel("freenode")
     print(handler.get_names())
-    tasks = [asyncio.create_task(handler.receive_messages()),
-    asyncio.create_task(handler.send_message())]
-    await asyncio.wait(*tasks)
+    tasks = [threading.Thread(target=handler.receive_messages),
+             threading.Thread(target=handler.send_message())]
 
+    for t in tasks:
+        t.start()
+
+    for t in tasks:
+        t.join()
 
     #
     # while (cmd != "/quit"):
