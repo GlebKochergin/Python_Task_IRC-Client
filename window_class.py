@@ -7,8 +7,18 @@ from channels_window_class import ServerWindow
 from chat_window_class import ChatWindow
 
 
-def go_to_next_window():
+def go_to_server_window():
     widget.setCurrentIndex(widget.currentIndex() + 1)
+    server_window = ServerWindow(go_to_chat_server,
+                                 main_window.nickname.text(),
+                                 main_window.irc_server_input.text())
+    widget.addWidget(server_window)
+
+
+def go_to_chat_server():
+    widget.setCurrentIndex(widget.currentIndex() + 1)
+    chat_window = ChatWindow()
+    widget.addWidget(chat_window)
 
 
 def go_to_previous_window():
@@ -69,7 +79,7 @@ class MainWindow(QDialog):
             self.setStyleSheet('background-color: #FF7070')
         else:
             self.setStyleSheet('background-image: url(main_back.jpg);')
-            go_to_next_window()
+            go_to_server_window()
 
 
 app = QApplication(sys.argv)
@@ -78,12 +88,7 @@ widget.setMinimumSize(1200, 800)
 widget.setMaximumSize(1200, 800)
 
 main_window = MainWindow()
-server_window = ServerWindow(go_to_next_window)
-chat_window = ChatWindow()
-
 widget.addWidget(main_window)
-widget.addWidget(server_window)
-widget.addWidget(chat_window)
 widget.setWindowTitle(widget.currentWidget().windowTitle())
 widget.show()
 
