@@ -1,4 +1,3 @@
-import asyncio
 from chat_recorder import ChatRecorder
 from IRCClient import IRCSimpleClient
 from data_analyze import IRCDataAnalyzer
@@ -86,7 +85,6 @@ class IRCHandler:
                             admins.append(names[i])
                     names = filter(lambda x: not x.startswith("@"), names)
                     users += names
-            print(admins)
             ans = sorted(admins, key=lambda x: x.lower())\
                   + sorted(users, key=lambda x: x.lower())
             return ans
@@ -116,33 +114,38 @@ class IRCHandler:
     def get_names(self):
         return self.names
 
-    def send_message(self):
-        if self.message != '':
-            self.client.send_message_to_channel(self.message)
-            self.recorder.add_record(f"{self.client.username}: {self.message}")
+    def send_message(self, mes: str):
+        if mes.startswith("/kick"):
+            self.client.send_cmd("KICK", f"{self.client.channel} {mes.split(' ')[1]}")
+        if mes != '':
+            self.client.send_message_to_channel(mes)
+            self.recorder.add_record(f"{self.client.username}: {mes}")
 
-    def receive_messages(self):
-        while True:
-            resp = str(self.client.get_response())
-            if len(resp) != 0:
-                log("recieved", resp.strip())
+    def receive_message(self):
+        log("wait for resp")
+        resp = str(self.client.get_response())
+        if len(resp) != 0:
+            log("recieved", resp.strip())
 
-            if "PING" in resp:
-                for line in resp.split("\n"):
-                    if line.startswith("PING"):
-                        self.client.send_cmd("PONG", ":" + line.split(":")[1]
-                                             .strip("\r\n"))
-                        break
+        if "PING" in resp:
+            for line in resp.split("\n"):
+                if line.startswith("PING"):
+                    self.client.send_cmd("PONG", ":" + line.split(":")[1]
+                                         .strip("\r\n"))
+                    return 
 
-            if len(resp.split("!")) == 2:
-                action = resp.split(" ")[1]
-                if action == "JOIN":
-                    self.recorder.add_record(f"{resp.split('!')[0][1:]} joined")
-                    return f"{resp.split('!')[0][1:]} joined"
-                if action == "QUIT":
-                    self.recorder.add_record(f"{resp.split('!')[0][1:]} quited")
-                    return f"{resp.split('!')[0][1:]} quited"
-                if action == "PRIVMSG":
-                    self.recorder.add_record(f"{resp.split('!')[0][1:]} " + resp.split(":")[2])
-                    return f"{resp.split('!')[0][1:]} " + resp.split(":")[2]
-
+        if len(resp.split("!")) == 2:
+            action = resp.split(" ")[1]
+            if action == "JOIN":
+                self.recorder.add_record(f"{resp.split('!')[0][1:]} joined")
+                return f"{resp.split('!')[0][1:]} joined"
+            if action == "QUIT":
+                self.recorder.add_record(f"{resp.split('!')[0][1:]} quited")
+                return f"{resp.split('!')[0][1:]} quited"
+            if action == "PRIVMSG":
+                self.recorder.add_record(f"{resp.split('!')[0][1:]}:" + resp.split(":")[2])
+                return f"{resp.split('!')[0][1:]} " + resp.split(":")[2]
+            if action == "NICK":
+                self.recorder.add_record(f"{resp.split('!')[0][1:]} " + " is now "+ resp.split(':')[2])
+                return f"{resp.split('!')[0][1:]} " + " is now " + resp.split(':')[2]
+        return 
