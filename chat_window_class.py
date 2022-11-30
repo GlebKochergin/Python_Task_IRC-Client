@@ -108,14 +108,7 @@ class ChatWindow(QDialog):
         self.show()
 
         self.pool = QThreadPool()
-        self.timer = QTimer()
-        self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.log)
-        self.timer.start()
         self.update_message()
-
-    def log(self):
-        print(self.pool.activeThreadCount())
 
     def set_text_in_chat(self):
         worker = Worker(self.IRCHandler.send_message, self.line.text())

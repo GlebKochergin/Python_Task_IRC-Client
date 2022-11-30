@@ -1,6 +1,8 @@
 import socket
 import codecs
 
+import logger
+
 
 class IRCSimpleClient:
     def __init__(self, username, server="irc.freenode.net",
@@ -16,10 +18,12 @@ class IRCSimpleClient:
         return channel if channel.startswith("#") else f"#{channel}"
 
     def connect(self):
-        self._conn.connect((self.server, self.port))
-
+        try:
+            self._conn.connect((self.server, self.port))
+        except Exception:
+            logger.log("Failed")
+            return False
         return True
-        #разгранчить ответственность
 
     def get_response(self):
         resp = self._conn.recv(2048)

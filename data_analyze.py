@@ -19,9 +19,12 @@ class IRCDataAnalyzer:
         self._formatted_data = self._data_format_func(self._not_formatted_data)
 
     def get_data(self) -> [str]:
-        log("!!!!!!!!!!!!!!!!!!!!!!!")
         log(self._not_formatted_data)
         if len(self._formatted_data) == 0:
             self.data_analyze()
 
         return self._formatted_data
+
+    def clear(self):
+        self.__init__(self._data_format_func)
+

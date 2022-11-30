@@ -11,9 +11,10 @@ class IRCHandler:
         self.recorder = ChatRecorder("log.txt")
         self.message = ''
 
-
     def connect_to_server(self):
-        self.client.connect()
+        con = self.client.connect()
+        if not con:
+            return False
         username = self.client.username
         self.client.send_cmd("USER",
                              f"{username} {username} {username} {username}")
@@ -47,16 +48,6 @@ class IRCHandler:
                 return True
 
     def get_channels_list(self) -> list[str]:
-        def get_channels(raw_data: str):
-            channels = []
-            for line in raw_data.split("\r\n"):
-                if line == "":
-                    continue
-                if line.split(" ")[1] == "322":
-                    channels.append(line.split(" ")[3])
-
-            return channels
-
         channels = IRCDataAnalyzer(get_channels)
         self.client.send_cmd("LIST", "")
 
@@ -72,23 +63,6 @@ class IRCHandler:
                 continue
 
     def join_channel(self, channel):
-        def get_names(raw_data: str):
-            users = []
-            admins = []
-            for line in raw_data.split("\r\n"):
-                if line == "":
-                    continue
-                if line.split(" ")[1] == "353":
-                    names = [_ for _ in line.split(":")[2].split(" ")]
-                    for i in range(len(names)):
-                        if names[i].startswith("@"):
-                            admins.append(names[i])
-                    names = filter(lambda x: not x.startswith("@"), names)
-                    users += names
-            ans = sorted(admins, key=lambda x: x.lower())\
-                  + sorted(users, key=lambda x: x.lower())
-            return ans
-
         self.client.join_channel(channel)
         names = IRCDataAnalyzer(get_names)
         while True:
@@ -116,7 +90,8 @@ class IRCHandler:
 
     def send_message(self, mes: str):
         if mes.startswith("/kick"):
-            self.client.send_cmd("KICK", f"{self.client.channel} {mes.split(' ')[1]}")
+            self.client.send_cmd("KICK",
+                                 f"{self.client.channel} {mes.split(' ')[1]}")
         if mes != '':
             self.client.send_message_to_channel(mes)
             self.recorder.add_record(f"{self.client.username}: {mes}")
@@ -132,7 +107,7 @@ class IRCHandler:
                 if line.startswith("PING"):
                     self.client.send_cmd("PONG", ":" + line.split(":")[1]
                                          .strip("\r\n"))
-                    return 
+                    return
 
         if len(resp.split("!")) == 2:
             action = resp.split(" ")[1]
@@ -143,9 +118,42 @@ class IRCHandler:
                 self.recorder.add_record(f"{resp.split('!')[0][1:]} quited")
                 return f"{resp.split('!')[0][1:]} quited"
             if action == "PRIVMSG":
-                self.recorder.add_record(f"{resp.split('!')[0][1:]}:" + resp.split(":")[2])
+                self.recorder.add_record(
+                    f"{resp.split('!')[0][1:]}:" + resp.split(":")[2])
                 return f"{resp.split('!')[0][1:]} " + resp.split(":")[2]
             if action == "NICK":
-                self.recorder.add_record(f"{resp.split('!')[0][1:]} " + " is now "+ resp.split(':')[2])
-                return f"{resp.split('!')[0][1:]} " + " is now " + resp.split(':')[2]
-        return 
+                self.recorder.add_record(
+                    f"{resp.split('!')[0][1:]} " + " is now " +
+                    resp.split(':')[2])
+                return f"{resp.split('!')[0][1:]} " + " is now " +\
+                       resp.split(':')[2]
+        return
+
+
+def get_channels(raw_data: str):
+    channels = []
+    for line in raw_data.split("\r\n"):
+        if line == "" or len(line.split(" ")) != 4:
+            continue
+        if line.split(" ")[1] == "322":
+            channels.append(line.split(" ")[3])
+
+    return channels
+
+
+def get_names(raw_data: str):
+    users = []
+    admins = []
+    for line in raw_data.split("\r\n"):
+        if line == "":
+            continue
+        if line.split(" ")[1] == "353":
+            names = [_ for _ in line.split(":")[2].split(" ")]
+            for i in range(len(names)):
+                if names[i].startswith("@"):
+                    admins.append(names[i])
+            names = filter(lambda x: not x.startswith("@"), names)
+            users += names
+    ans = sorted(admins, key=lambda x: x.lower())\
+          + sorted(users, key=lambda x: x.lower())
+    return ans
