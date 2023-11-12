@@ -2,17 +2,31 @@ import sys
 import threading
 import traceback
 
-from PyQt6.QtWidgets import \
-    QApplication, QPushButton, QVBoxLayout, QLineEdit, QWidget, QLabel, \
-    QDialog, QScrollArea
-from PyQt6.QtCore import Qt, pyqtSlot, pyqtSignal, QRunnable, QObject, QTimer,\
-    QThreadPool
+from PyQt6.QtWidgets import (
+    QApplication,
+    QPushButton,
+    QVBoxLayout,
+    QLineEdit,
+    QWidget,
+    QLabel,
+    QDialog,
+    QScrollArea,
+)
+from PyQt6.QtCore import (
+    Qt,
+    pyqtSlot,
+    pyqtSignal,
+    QRunnable,
+    QObject,
+    QTimer,
+    QThreadPool,
+)
 
 from logger import log
 
 
 class WorkerSignals(QObject):
-    '''
+    """
     Defines the signals available from a running worker thread.
 
     Supported signals are:
@@ -29,7 +43,8 @@ class WorkerSignals(QObject):
     progress
         int indicating % progress
 
-    '''
+    """
+
     finished = pyqtSignal()
     error = pyqtSignal(tuple)
     result = pyqtSignal(object)
@@ -37,7 +52,7 @@ class WorkerSignals(QObject):
 
 
 class Worker(QRunnable):
-    '''
+    """
     Worker thread
 
     Inherits from QRunnable to handler worker thread setup, signals and wrap-up.
@@ -48,7 +63,7 @@ class Worker(QRunnable):
     :param args: Arguments to pass to the callback function
     :param kwargs: Keywords to pass to the callback function
 
-    '''
+    """
 
     def __init__(self, fn, *args):
         super(Worker, self).__init__()
@@ -58,12 +73,11 @@ class Worker(QRunnable):
         self.args = args
         self.signals = WorkerSignals()
 
-
     @pyqtSlot()
     def run(self):
-        '''
+        """
         Initialise the runner function with passed args, kwargs.
-        '''
+        """
 
         # Retrieve args/kwargs here; and fire processing using them
         try:
@@ -73,27 +87,32 @@ class Worker(QRunnable):
             exctype, value = sys.exc_info()[:2]
             self.signals.error.emit((exctype, value, traceback.format_exc()))
         else:
-            self.signals.result.emit(result)  # Return the result of the processing
+            self.signals.result.emit(
+                result
+            )  # Return the result of the processing
         finally:
             self.signals.finished.emit()
+
 
 class ChatWindow(QDialog):
     def __init__(self, handler):
         super(ChatWindow, self).__init__()
-        self.setWindowTitle('IRC-Chat')
+        self.setWindowTitle("IRC-Chat")
         self.resize(1200, 800)
         self.setMaximumSize(1200, 800)
         self.IRCHandler = handler
-        self.setStyleSheet('background-image: url(second_back.png);')
+        self.setStyleSheet("background-image: url(second_back.png);")
         self.chat = QLabel()
-        self.chat.setStyleSheet('background-color: #0F0F0F; '
-                                'font-size : 15px;')
+        self.chat.setStyleSheet(
+            "background-color: #0F0F0F; " "font-size : 15px;"
+        )
         self.chat.setMinimumSize(600, 200)
         self.chat.setMaximumSize(1200, 400)
         self.line = QLineEdit()
-        self.line.setStyleSheet('background-color: #D2FFF2; '
-                                'font-size : 30px;')
-        self.send_message_button = QPushButton('Send!')
+        self.line.setStyleSheet(
+            "background-color: #D2FFF2; " "font-size : 30px;"
+        )
+        self.send_message_button = QPushButton("Send!")
         self.send_message_button.clicked.connect(self.set_text_in_chat)
         self.line.setMinimumSize(600, 50)
         self.line.setMaximumSize(1200, 50)
@@ -117,7 +136,7 @@ class ChatWindow(QDialog):
         self.pool.start(worker)
 
     def set_mes_in_screen(self):
-        self.chat.setText(f'{self.line.text()}')
+        self.chat.setText(f"{self.line.text()}")
         log("hello from set")
 
     def recieve_message(self, *arg):

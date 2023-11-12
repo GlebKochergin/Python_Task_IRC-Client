@@ -9,15 +9,16 @@ class IRCHandler:
         self.client = IRCSimpleClient(username, server, port)
         self.names = list[str]
         self.recorder = ChatRecorder("log.txt")
-        self.message = ''
+        self.message = ""
 
     def connect_to_server(self):
         con = self.client.connect()
         if not con:
             return False
         username = self.client.username
-        self.client.send_cmd("USER",
-                             f"{username} {username} {username} {username}")
+        self.client.send_cmd(
+            "USER", f"{username} {username} {username} {username}"
+        )
         self.client.send_cmd("NICK", f"{username}")
         connected = False
         while not connected:
@@ -29,20 +30,21 @@ class IRCHandler:
             if "No Ident response" in resp:
                 self.client.send_cmd("NICK", username)
                 self.client.send_cmd(
-                    "USER", "{} * * :{}".format(username, username))
+                    "USER", "{} * * :{}".format(username, username)
+                )
 
             if "PING" in resp:
                 for line in resp.split("\n"):
                     if line.startswith("PING"):
-                        self.client.send_cmd("PONG", ":" + line.split(":")[1]
-                                             .strip("\r\n"))
+                        self.client.send_cmd(
+                            "PONG", ":" + line.split(":")[1].strip("\r\n")
+                        )
                         break
 
             if "433" in resp:
                 username = "_" + self.client.username
                 self.client.send_cmd("NICK", username)
-                self.client.send_cmd(
-                    "USER", f"{username} * * {username}")
+                self.client.send_cmd("USER", f"{username} * * {username}")
 
             if "376" in resp:
                 return True
@@ -90,9 +92,10 @@ class IRCHandler:
 
     def send_message(self, mes: str):
         if mes.startswith("/kick"):
-            self.client.send_cmd("KICK",
-                                 f"{self.client.channel} {mes.split(' ')[1]}")
-        if mes != '':
+            self.client.send_cmd(
+                "KICK", f"{self.client.channel} {mes.split(' ')[1]}"
+            )
+        if mes != "":
             self.client.send_message_to_channel(mes)
             self.recorder.add_record(f"{self.client.username}: {mes}")
 
@@ -105,8 +108,9 @@ class IRCHandler:
         if "PING" in resp:
             for line in resp.split("\n"):
                 if line.startswith("PING"):
-                    self.client.send_cmd("PONG", ":" + line.split(":")[1]
-                                         .strip("\r\n"))
+                    self.client.send_cmd(
+                        "PONG", ":" + line.split(":")[1].strip("\r\n")
+                    )
                     return
 
         if len(resp.split("!")) == 2:
@@ -119,14 +123,20 @@ class IRCHandler:
                 return f"{resp.split('!')[0][1:]} quited"
             if action == "PRIVMSG":
                 self.recorder.add_record(
-                    f"{resp.split('!')[0][1:]}:" + resp.split(":")[2])
+                    f"{resp.split('!')[0][1:]}:" + resp.split(":")[2]
+                )
                 return f"{resp.split('!')[0][1:]} " + resp.split(":")[2]
             if action == "NICK":
                 self.recorder.add_record(
-                    f"{resp.split('!')[0][1:]} " + " is now " +
-                    resp.split(':')[2])
-                return f"{resp.split('!')[0][1:]} " + " is now " +\
-                       resp.split(':')[2]
+                    f"{resp.split('!')[0][1:]} "
+                    + " is now "
+                    + resp.split(":")[2]
+                )
+                return (
+                    f"{resp.split('!')[0][1:]} "
+                    + " is now "
+                    + resp.split(":")[2]
+                )
         return
 
 
@@ -154,6 +164,7 @@ def get_names(raw_data: str):
                     admins.append(names[i])
             names = filter(lambda x: not x.startswith("@"), names)
             users += names
-    ans = sorted(admins, key=lambda x: x.lower())\
-          + sorted(users, key=lambda x: x.lower())
+    ans = sorted(admins, key=lambda x: x.lower()) + sorted(
+        users, key=lambda x: x.lower()
+    )
     return ans

@@ -12,8 +12,11 @@ def print_response(client):
     if resp:
         if len(str(resp)) != 0:
             msg = resp.strip().split(":")
-            log("response" + " " + "<{}> {}".format(msg[1].split("!")[0],
-                                                    msg[2].strip()))
+            log(
+                "response"
+                + " "
+                + "<{}> {}".format(msg[1].split("!")[0], msg[2].strip())
+            )
 
 
 async def start_irc_client(server: str, username: str):
@@ -22,8 +25,10 @@ async def start_irc_client(server: str, username: str):
     print(handler.get_channels_list())
     handler.join_channel("freenode")
     print(handler.get_names())
-    tasks = [threading.Thread(target=handler.receive_message),
-             threading.Thread(target=handler.send_message)]
+    tasks = [
+        threading.Thread(target=handler.receive_message),
+        threading.Thread(target=handler.send_message),
+    ]
 
     for t in tasks:
         t.start()

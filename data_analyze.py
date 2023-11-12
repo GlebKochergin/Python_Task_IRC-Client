@@ -2,7 +2,7 @@ import threading
 from logger import log
 
 
-#убрать все в одно место
+# убрать все в одно место
 class IRCDataAnalyzer:
     def __init__(self, get_formatted):
         self._mutex = threading.Lock()
@@ -27,4 +27,3 @@ class IRCDataAnalyzer:
 
     def clear(self):
         self.__init__(self._data_format_func)
-

@@ -5,8 +5,7 @@ import logger
 
 
 class IRCSimpleClient:
-    def __init__(self, username, server="irc.freenode.net",
-                 port=6667):
+    def __init__(self, username, server="irc.freenode.net", port=6667):
         self.username = username
         self.server = server
         self.port = port
@@ -33,7 +32,7 @@ class IRCSimpleClient:
         command = f"{cmd} {message}\r\n".encode("cp1251")
         self._conn.send(command)
         print("send command", command.decode("cp1251"))
-        #сделать этот метод приватным
+        # сделать этот метод приватным
 
     def send_message_to_channel(self, message):
         command = "PRIVMSG {}".format(self.channel)
@@ -48,5 +47,3 @@ class IRCSimpleClient:
 
     def get_channel_list(self):
         self.send_cmd("LIST", "")
-
-

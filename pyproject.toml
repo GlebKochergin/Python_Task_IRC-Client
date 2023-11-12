@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "python-task-irc-client"
+version = "0.1.0"
+description = ""
+authors = ["Gleb <kochergin.gleb2016@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyqt6 = "^6.6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+flake8 = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 80
+target-version = ['py311']
+include = '\.pyi?$'
+
+[flake8]
+max-line-length = 80
